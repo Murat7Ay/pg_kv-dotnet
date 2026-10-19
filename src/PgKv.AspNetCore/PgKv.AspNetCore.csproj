@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>ASP.NET Core rate limiting with buckets shared through pg_kv: a one-line policy and 429 responses with Retry-After and RateLimit headers.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\PgKv.RateLimiting\PgKv.RateLimiting.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PgKv/PgKv.csproj" />
+    <Project Path="src/PgKv.RateLimiting/PgKv.RateLimiting.csproj" />
+    <Project Path="src/PgKv.AspNetCore/PgKv.AspNetCore.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PgKv.Tests/PgKv.Tests.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/RateLimitApi/RateLimitApi.csproj" />
+  </Folder>
+</Solution>

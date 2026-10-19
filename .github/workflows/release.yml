@@ -1,0 +1,62 @@
+name: Release
+
+# Push a tag like v0.1.0-preview.1 to test, pack and publish every package to nuget.org.
+# Publishing uses nuget.org Trusted Publishing (GitHub OIDC), so no API key is stored:
+# a policy on nuget.org must trust this repository and this workflow file (release.yml),
+# and the NUGET_USER secret holds the nuget.org user name (profile name, not e-mail).
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write   # GitHub release
+      id-token: write   # OIDC token for nuget.org
+    env:
+      PGKV_TEST_IMAGE: ghcr.io/murat7ay/pg_kv:0.1.0-pg18
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Check the tag matches the project version
+        run: |
+          version=$(dotnet msbuild src/PgKv/PgKv.csproj -getProperty:Version)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match the project version $version (Directory.Build.props)"
+            exit 1
+          fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Test
+        run: dotnet test PgKv.slnx -c Release
+
+      - name: Pack
+        run: for project in src/*/*.csproj; do dotnet pack "$project" -c Release -o artifacts; done
+
+      - name: NuGet login (OIDC to a temporary API key)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Push to nuget.org
+        run: >
+          dotnet nuget push "artifacts/*.nupkg"
+          --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
+
+      - name: GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prerelease=""
+          case "$VERSION" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" artifacts/*.nupkg --title "$GITHUB_REF_NAME" --notes-file CHANGELOG.md $prerelease

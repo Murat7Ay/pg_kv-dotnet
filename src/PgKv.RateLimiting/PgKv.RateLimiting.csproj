@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>A System.Threading.RateLimiting token-bucket limiter whose buckets live in pg_kv, so every instance of an application shares them.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PgKv\PgKv.csproj" />
+    <PackageReference Include="System.Threading.RateLimiting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Options validation (ToBucket) is shared with the ASP.NET Core package and the tests. -->
+    <InternalsVisibleTo Include="PgKv.AspNetCore" />
+    <InternalsVisibleTo Include="PgKv.Tests" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: pg_kv on PostgreSQL ${{ matrix.pg }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        pg: [15, 16, 17, 18]
+    env:
+      PGKV_TEST_IMAGE: ghcr.io/murat7ay/pg_kv:0.1.0-pg${{ matrix.pg }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - name: Test
+        run: dotnet test PgKv.slnx -c Release
+      - name: Pack
+        run: for project in src/*/*.csproj; do dotnet pack "$project" -c Release -o artifacts; done
